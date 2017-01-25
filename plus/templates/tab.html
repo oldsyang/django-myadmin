@@ -1,0 +1,20 @@
+<table>
+
+    <thead>
+    <tr>
+        {% for hitem in header %}
+            <th>{{ hitem }}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for datum in body %}
+        <tr>
+            {% for foo in datum %}
+                <td>{{ foo }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+
+</table>

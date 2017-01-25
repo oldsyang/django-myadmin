@@ -1,0 +1,20 @@
+{% load tab %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        table td tr {
+            border: 1px solid red;
+        }
+    </style>
+</head>
+<body>
+
+<a href="{{ add_url }}">添加数据</a>
+
+<h3>列表</h3>
+{% func_data data_list list_display model_class_obj %}
+</body>
+</html>

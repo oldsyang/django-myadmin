@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="post" novalidate>
+    {% csrf_token %}
+    <p>{{ obj.name }}{{ obj.errors.name.0 }}</p>
+    <p>{{ obj.age }}{{ obj.errors.age.0 }}</p>
+    <p>{{ obj.email }}{{ obj.errors.email.0 }}</p>
+    <p>{{ obj.ug }}{{ obj.errors.ug.0 }}</p>
+    <p>{{ obj.m2m }}{{ obj.errors.m2m.0 }}</p>
+    <input type="submit" value="提交"/>
+</form>
+</body>
+</html>
