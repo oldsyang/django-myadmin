@@ -13,6 +13,13 @@ class Role(models.Model):
 
 class UserGroup(models.Model):
     title = models.CharField(verbose_name="组名", max_length=64)
+    def __str__(self):
+        return self.title
+
+class Grade(models.Model):
+    title = models.CharField(verbose_name="班级名", max_length=64)
+    def __str__(self):
+        return self.title
 
 
 class UserInfo(models.Model):
@@ -20,8 +27,8 @@ class UserInfo(models.Model):
     age = models.IntegerField(verbose_name="年龄")
     email = models.EmailField(verbose_name="邮箱")
 
-    ug = models.ForeignKey(UserGroup)
-    m2m = models.ManyToManyField(Role)
+    ug = models.ForeignKey(UserGroup,verbose_name="分组")
+    m2m = models.ManyToManyField(Grade,verbose_name="班级")
 
     def __str__(self):
         return self.name

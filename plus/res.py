@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.forms import ModelForm
 
@@ -29,10 +29,12 @@ class ModelClass(object):
         ]
         return urlpatterns
 
-    def changelist_view(self, request):
-        data = self.model_class.objects.all()
-
-        # -----------获取新增按钮的href地址-------------------
+    def get_url_params(self, request):
+        '''
+        获取url的参数
+        :param request: 
+        :return: 
+        '''
 
         # request.GET其类型就是一个QueryDict，所以有一个urlencode方法，获取所有的参数
         from django.http.request import QueryDict
@@ -43,12 +45,22 @@ class ModelClass(object):
             # 重新自定一个参数{"_params":'name=yangzai&page=10'}
             # 当跳转的时候，去除_params的值，和url拼接
             querydict["_params"] = request.GET.urlencode()  # name=yangzai&page=10
+        else:
+            querydict["_params"] = ""
 
-        print("url:", request.GET.urlencode())
+        return querydict.urlencode()
+
+    def changelist_view(self, request):
+
+        self.request = request
+        data = self.model_class.objects.all()
+
+        # 获取当前url的参数
+        querydict = self.get_url_params(request)
         base_url = reverse(
             "%s:%s_%s_add" % (self.site.namespace, self.model_class._meta.app_label, self.model_class._meta.model_name))
 
-        add_url = "%s?%s" % (base_url, querydict.urlencode())
+        add_url = "%s?%s" % (base_url, querydict)
 
         # 传递的数据
         params = {
@@ -60,23 +72,30 @@ class ModelClass(object):
 
         return render(request, "change_list.html", params)
 
-    def add_view(self, request):
-
+    def get_model_form(self):
+        # ModelForm可以自动生成标签
         class MyModelForm(ModelForm):
             class Meta:
                 model = self.model_class
                 fields = "__all__"
 
-        model_form = MyModelForm()
+        return MyModelForm
 
-
+    def add_view(self, request):
         if request.method == "GET":
+            model_form = self.get_model_form()()
             return render(request, "add.html", {"form": model_form})
         else:
+            obj = self.get_model_form()(data=request.POST, files=request.FILES)
+            _params = request.GET.get("_params")
+            if obj.is_valid():
+                obj.save()
+                changelist_url = reverse(
+                    "{0}:{1}_{2}_changelist".format(self.site.namespace, self.app_label, self.model_name))
+                changelist_url = "%s?%s" % (changelist_url, _params)
 
-            info = (self.model_class._meta.app_label, self.model_class._meta.model_name)
-            data = "%s_%s_add" % info
-            return HttpResponse(data)
+                # 跳回页面
+                return redirect(changelist_url)
 
     def delete_view(self, request, pk):
         info = (self.model_class._meta.app_label, self.model_class._meta.model_name)
@@ -84,9 +103,23 @@ class ModelClass(object):
         return HttpResponse(data)
 
     def change_view(self, request, pk):
-        info = (self.model_class._meta.app_label, self.model_class._meta.model_name)
-        data = "%s_%s_change" % info
-        return HttpResponse(data)
+        obj = self.model_class.objects.filter(pk=pk).first()
+        if not obj:
+            return HttpResponse("出错了")
+
+        if request.method == "GET":
+            model_form = self.get_model_form()(instance=obj)
+            return render(request, "add.html", {"form": model_form})
+        else:
+            # 这里要加instance，才能去处理如果库里有就更新
+            obj = self.get_model_form()(data=request.POST, files=request.FILES, instance=obj)
+            _params = request.GET.get("_params")
+            if obj.is_valid():
+                obj.save()
+                changelist_url = reverse(
+                    "{0}:{1}_{2}_changelist".format(self.site.namespace, self.app_label, self.model_name))
+                changelist_url = "%s?%s" % (changelist_url, _params)
+                return redirect(changelist_url)
 
 
 from django.shortcuts import HttpResponse

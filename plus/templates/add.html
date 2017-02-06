@@ -5,6 +5,10 @@
     <title>Title</title>
 </head>
 <body>
-{{ form.as_p }}
+<form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit"/>
+</form>
 </body>
 </html>
