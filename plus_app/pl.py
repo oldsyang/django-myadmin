@@ -40,7 +40,25 @@ class UserinfoModelClass(ModelClass):
 
         return mark_safe("<input/>")
 
-    list_display = [add, "id", "name", "email", edit]
+    def delete(self,obj,return_header=False):
+
+
+        # 返回列名
+        if return_header: return "删除"
+
+        from plus.res import site
+
+        # 反向解析的名字
+        name = "%s:%s_%s_delete" % (site.namespace, self.app_label, self.model_name)
+
+        res_url = reverse(name, args=(obj.pk,))
+        res_url = "{0}?{1}".format(res_url, self.get_url_params(self.request))
+
+        return mark_safe("<a href='%s'>删除</a>" % res_url)
+
+
+
+    list_display = [add, "id", "name", "email", edit,delete]
 
 
 class UserGroupModelClass(ModelClass):

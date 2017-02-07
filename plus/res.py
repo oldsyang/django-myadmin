@@ -73,6 +73,11 @@ class ModelClass(object):
         return render(request, "change_list.html", params)
 
     def get_model_form(self):
+        '''
+        生成一个默认的ModelForm
+        :return: 
+        '''
+
         # ModelForm可以自动生成标签
         class MyModelForm(ModelForm):
             class Meta:
@@ -98,9 +103,17 @@ class ModelClass(object):
                 return redirect(changelist_url)
 
     def delete_view(self, request, pk):
-        info = (self.model_class._meta.app_label, self.model_class._meta.model_name)
-        data = "%s_%s_del" % info
-        return HttpResponse(data)
+        obj = self.model_class.objects.filter(pk=pk).delete()
+        if not obj:
+            return HttpResponse("出错了")
+
+        _params = request.GET.get("_params")
+        changelist_url = reverse(
+            "{0}:{1}_{2}_changelist".format(self.site.namespace, self.app_label, self.model_name))
+        changelist_url = "%s?%s" % (changelist_url, _params)
+
+        # 跳回页面
+        return redirect(changelist_url)
 
     def change_view(self, request, pk):
         obj = self.model_class.objects.filter(pk=pk).first()
