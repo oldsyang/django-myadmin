@@ -1,0 +1,9 @@
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% for item in form %}
+        <div>
+            {{ item.name }}{{ item.form_tag }}
+        </div>
+    {% endfor %}
+    <input type="submit"/>
+</form>

@@ -2,32 +2,26 @@ print("################ceshi#########################")
 
 from plus.res import site
 from plus_app import models
-from plus.res import ModelClass
+from plus.res import PlusModelAdmin
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
 
-class UserinfoModelClass(ModelClass):
+class UserinfoPlusModelAdmin(PlusModelAdmin):
     # obj代表的是行数据的对象
     def edit(self, obj, return_header=False):
-        print("obj:", obj)
         # obj.pk代表的是主键，在修改的时候要知道修改的对象
 
         # 返回列名
         if return_header: return mark_safe("<input type='checkbox'/>")
 
         from plus.res import site
-        # 命名空间
-        namespace = site.namespace
-        # 获取app名和model名
-        app_label = self.app_label
-        model_name = self.model_name
 
         # 通过对象找类
         # model_name = type(obj)._meta.model_name
 
         # 反向解析的名字
-        name = "%s:%s_%s_change" % (namespace, app_label, model_name)
+        name = "%s:%s_%s_change" % (site.namespace, self.app_label, self.model_name)
 
         res_url = reverse(name, args=(obj.pk,))
         res_url = "{0}?{1}".format(res_url, self.get_url_params(self.request))
@@ -61,15 +55,15 @@ class UserinfoModelClass(ModelClass):
     list_display = [add, "id", "name", "email", edit,delete]
 
 
-class UserGroupModelClass(ModelClass):
+class UserGroupPlusModelAdmin(PlusModelAdmin):
     list_display = ["id", "name"]
 
 
-class RoleModelClass(ModelClass):
+class RolePlusModelAdmin(PlusModelAdmin):
     list_display = ["id", "name"]
 
 
-site.register(models.UserInfo, UserinfoModelClass)
+site.register(models.UserInfo, UserinfoPlusModelAdmin)
 site.register(models.UserGroup)
 site.register(models.Grade)
 site.register(models.Role)

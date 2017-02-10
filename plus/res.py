@@ -3,12 +3,11 @@ from django.urls import reverse
 from django.forms import ModelForm
 
 
-class ModelClass(object):
+class PlusModelAdmin(object):
     list_display = "__all__"
 
     def __init__(self, model_class, site):
         self.model_class = model_class
-        print(type(self.model_class))
         self.site = site
 
         self.app_label = self.model_class._meta.app_label
@@ -66,7 +65,7 @@ class ModelClass(object):
         params = {
             "data_list": data,
             "list_display": self.list_display,
-            "model_class_obj": self,
+            "modeladmin_obj": self,
             "add_url": add_url
         }
 
@@ -89,7 +88,8 @@ class ModelClass(object):
     def add_view(self, request):
         if request.method == "GET":
             model_form = self.get_model_form()()
-            return render(request, "add.html", {"form": model_form})
+
+            return render(request, "add.html", {"form": model_form, "modeladmin_obj": self})
         else:
             obj = self.get_model_form()(data=request.POST, files=request.FILES)
             _params = request.GET.get("_params")
@@ -101,6 +101,8 @@ class ModelClass(object):
 
                 # 跳回页面
                 return redirect(changelist_url)
+            else:
+                return render(request, "add.html", {"form": obj})
 
     def delete_view(self, request, pk):
         obj = self.model_class.objects.filter(pk=pk).delete()
@@ -133,6 +135,8 @@ class ModelClass(object):
                     "{0}:{1}_{2}_changelist".format(self.site.namespace, self.app_label, self.model_name))
                 changelist_url = "%s?%s" % (changelist_url, _params)
                 return redirect(changelist_url)
+            else:
+                return render(request, "add.html", {"form": obj})
 
 
 from django.shortcuts import HttpResponse
@@ -144,7 +148,7 @@ class PlSite(object):
         self.namespace = "plus"
         self.app_name = "plus"
 
-    def register(self, model_class, model_admin=ModelClass):
+    def register(self, model_class, model_admin=PlusModelAdmin):
         self._registry[model_class] = model_admin(model_class, self)
 
     def login(self, request):
