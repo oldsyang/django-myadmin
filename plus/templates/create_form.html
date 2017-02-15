@@ -2,8 +2,9 @@
     {% csrf_token %}
     {% for item in form %}
         <div>
-            {{ item.name }}{{ item.form_tag }}
+            {{ item.name }}{{ item.form_tag }}{{ item.error }}
         </div>
     {% endfor %}
+
     <input type="submit"/>
 </form>

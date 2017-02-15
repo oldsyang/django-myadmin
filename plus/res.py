@@ -6,6 +6,8 @@ from django.forms import ModelForm
 class PlusModelAdmin(object):
     list_display = "__all__"
 
+    model_form = None
+
     def __init__(self, model_class, site):
         self.model_class = model_class
         self.site = site
@@ -68,7 +70,6 @@ class PlusModelAdmin(object):
             "modeladmin_obj": self,
             "add_url": add_url
         }
-
         return render(request, "change_list.html", params)
 
     def get_model_form(self):
@@ -76,6 +77,7 @@ class PlusModelAdmin(object):
         生成一个默认的ModelForm
         :return: 
         '''
+        if self.model_form: return self.model_form
 
         # ModelForm可以自动生成标签
         class MyModelForm(ModelForm):
@@ -86,6 +88,7 @@ class PlusModelAdmin(object):
         return MyModelForm
 
     def add_view(self, request):
+        self.request = request
         if request.method == "GET":
             model_form = self.get_model_form()()
 
@@ -102,7 +105,8 @@ class PlusModelAdmin(object):
                 # 跳回页面
                 return redirect(changelist_url)
             else:
-                return render(request, "add.html", {"form": obj})
+
+                return render(request, "add.html", {"form": obj, "modeladmin_obj": self})
 
     def delete_view(self, request, pk):
         obj = self.model_class.objects.filter(pk=pk).delete()
@@ -124,7 +128,7 @@ class PlusModelAdmin(object):
 
         if request.method == "GET":
             model_form = self.get_model_form()(instance=obj)
-            return render(request, "add.html", {"form": model_form})
+            return render(request, "add.html", {"form": model_form, "modeladmin_obj": self})
         else:
             # 这里要加instance，才能去处理如果库里有就更新
             obj = self.get_model_form()(data=request.POST, files=request.FILES, instance=obj)
@@ -136,7 +140,7 @@ class PlusModelAdmin(object):
                 changelist_url = "%s?%s" % (changelist_url, _params)
                 return redirect(changelist_url)
             else:
-                return render(request, "add.html", {"form": obj})
+                return render(request, "add.html", {"form": obj, "modeladmin_obj": self})
 
 
 from django.shortcuts import HttpResponse

@@ -33,6 +33,7 @@ def func_data(data_list, list_diaplay, modeladmin_obj):
 
     print("header:", header)
 
+
     # 这个地方的return的数据是传给了tab.html
     return {"body": body, "header": header}
 
@@ -44,7 +45,17 @@ def func_data(data_list, list_diaplay, modeladmin_obj):
 # -###########################生成自定义的form-###########################
 def get_form_data(form, modeladmin_obj):
     for item in form:
-        yield {"form_tag": item, "name": modeladmin_obj.model_class._meta.get_field(item.name).verbose_name}
+        error = ""
+        # 如果有错误并且含有当前字段的错误
+        if form.errors and form.errors.get(item.name):
+            error = form.errors.get(item.name)[0]
+
+        yield {
+            "form_tag": item,
+            "name": modeladmin_obj.model_class._meta.get_field(item.name).verbose_name,
+            "error": error
+
+        }
 
 
 @register.inclusion_tag("create_form.html")

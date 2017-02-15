@@ -8,8 +8,6 @@ from plus_app import models
 # class UserAdmin(admin.ModelAdmin):
 #     list_display = ["id","name"]
 
-
-
 class UserAdmin(admin.ModelAdmin):
     def res(self):
         return "<a>2323</a>"

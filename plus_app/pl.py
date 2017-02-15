@@ -5,9 +5,22 @@ from plus_app import models
 from plus.res import PlusModelAdmin
 from django.utils.safestring import mark_safe
 from django.urls import reverse
+from django.forms import ModelForm
+
+
+class UserInfoModelForm(ModelForm):
+    class Meta:
+        model = models.UserInfo
+        fields = "__all__"
+        error_messages = {
+            "name": {"required": "姓名不能为空"},
+            "email": {"required": "邮箱不能为空"}
+        }
 
 
 class UserinfoPlusModelAdmin(PlusModelAdmin):
+    model_form = UserInfoModelForm
+
     # obj代表的是行数据的对象
     def edit(self, obj, return_header=False):
         # obj.pk代表的是主键，在修改的时候要知道修改的对象
@@ -34,8 +47,7 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
 
         return mark_safe("<input/>")
 
-    def delete(self,obj,return_header=False):
-
+    def delete(self, obj, return_header=False):
 
         # 返回列名
         if return_header: return "删除"
@@ -50,9 +62,7 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
 
         return mark_safe("<a href='%s'>删除</a>" % res_url)
 
-
-
-    list_display = [add, "id", "name", "email", edit,delete]
+    list_display = [add, "id", "name", "email", edit, delete]
 
 
 class UserGroupPlusModelAdmin(PlusModelAdmin):
