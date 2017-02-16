@@ -91,6 +91,8 @@ class PlusModelAdmin(object):
         self.request = request
         if request.method == "GET":
             model_form = self.get_model_form()()
+            from  django.forms.boundfield import BoundField
+
 
             return render(request, "add.html", {"form": model_form, "modeladmin_obj": self})
         else:

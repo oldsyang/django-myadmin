@@ -12,6 +12,8 @@ class UserInfoModelForm(ModelForm):
     class Meta:
         model = models.UserInfo
         fields = "__all__"
+        # 排除那些字段
+        # exclude
         error_messages = {
             "name": {"required": "姓名不能为空"},
             "email": {"required": "邮箱不能为空"}
