@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+    //将数据返回给调用者（父级窗口）
+    opener.openpoupcallback('{{ pk }}', '{{ text }}', '{{ popup_id }}');
+    window.close();
+</script>
+</body>
+</html>

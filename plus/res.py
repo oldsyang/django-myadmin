@@ -92,20 +92,24 @@ class PlusModelAdmin(object):
         if request.method == "GET":
             model_form = self.get_model_form()()
             from  django.forms.boundfield import BoundField
-
-
             return render(request, "add.html", {"form": model_form, "modeladmin_obj": self})
         else:
             obj = self.get_model_form()(data=request.POST, files=request.FILES)
             _params = request.GET.get("_params")
             if obj.is_valid():
-                obj.save()
+                popup_obj = obj.save()
                 changelist_url = reverse(
                     "{0}:{1}_{2}_changelist".format(self.site.namespace, self.app_label, self.model_name))
                 changelist_url = "%s?%s" % (changelist_url, _params)
 
-                # 跳回页面
-                return redirect(changelist_url)
+                popup_id = request.GET.get("_popup_id")
+                # 这个的话是表示这个一个新弹出的popup窗口的提交请求
+                if popup_id:
+                    return render(request, "form_add_popup.html",
+                                  {"pk": popup_obj.pk, "text": str(popup_obj), "popup_id": popup_id})
+                else:
+                    # 正常的请求，跳回页面
+                    return redirect(changelist_url)
             else:
 
                 return render(request, "add.html", {"form": obj, "modeladmin_obj": self})

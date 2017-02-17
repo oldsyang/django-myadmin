@@ -17,8 +17,8 @@
         {% for item in form %}
             {% if item.is_popup %}
                 <li>
-                    {{ item.data.field.label }}{{ item.data }}<a
-                        href="{{ item.popup_url }}">添加</a>{{ item.data.errors.0 }}
+                    {{ item.data.field.label }}{{ item.data }}<a onclick="openpopupclick('{{ item.popup_url }}')"
+                >添加</a>{{ item.data.errors.0 }}
                 </li>
             {% else %}
                 <li>
@@ -32,5 +32,19 @@
         </li>
     </ul>
 
-    <input type="submit"/>
 </form>
+<script>
+    function openpopupclick(url) {
+        //打开新窗口
+        window.open(url, url, 'width=500,height=600,top=50')
+    }
+
+    function openpoupcallback(id, text, popid) {
+        var ele = document.createElement("option");
+        ele.setAttribute("value", id);
+        //将新增加的值选中
+        ele.setAttribute("selected", "selected");
+        ele.innerText = text;
+        document.getElementById(popid).appendChild(ele);
+    }
+</script>

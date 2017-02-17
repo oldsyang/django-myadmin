@@ -7,37 +7,37 @@
 </head>
 <body>
 <div>
-    <div style="float:left;width: 30%;">
-        <h1>自动生成的</h1>
-
-        <form method="post" novalidate>
-            {% csrf_token %}
-            {{ form.as_p }}
-            <input type="submit"/>
-        </form>
-    </div>
+{#    <div style="float:left;width: 30%;">#}
+{#        <h1>自动生成的</h1>#}
+{##}
+{#        <form method="post" novalidate>#}
+{#            {% csrf_token %}#}
+{#            {{ form.as_p }}#}
+{#            <input type="submit"/>#}
+{#        </form>#}
+{#    </div>#}
     <div style="float:left;">
         <h1>手动生成1</h1>
 
         {% create_form form modeladmin_obj %}
 
     </div>
-    <div style="float: left">
-        <h1>手动生成2</h1>
-        <form novalidate method="post">
-            {% csrf_token %}
-            <ul>
-                {% for item in form %}
-                    <li>
-                        {{ item.field.label }}{{ item }}{{ item.errors.0 }}
-                    </li>
-                {% endfor %}
-                <li>
-                    <input type="submit"/>
-                </li>
-            </ul>
-        </form>
-    </div>
+{#    <div style="float: left">#}
+    {#        <h1>手动生成2</h1>#}
+    {#        <form novalidate method="post">#}
+    {#            {% csrf_token %}#}
+    {#            <ul>#}
+    {#                {% for item in form %}#}
+    {#                    <li>#}
+    {#                        {{ item.field.label }}{{ item }}{{ item.errors.0 }}#}
+    {#                    </li>#}
+    {#                {% endfor %}#}
+    {#                <li>#}
+    {#                    <input type="submit"/>#}
+    {#                </li>#}
+    {#            </ul>#}
+    {#        </form>#}
+    {#    </div>#}
 </div>
 
 </body>
