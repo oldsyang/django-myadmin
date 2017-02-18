@@ -31,7 +31,6 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
         if return_header: return mark_safe("<input type='checkbox'/>")
 
         from plus.res import site
-
         # 通过对象找类
         # model_name = type(obj)._meta.model_name
 

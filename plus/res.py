@@ -54,7 +54,6 @@ class PlusModelAdmin(object):
     def changelist_view(self, request):
 
         self.request = request
-        data = self.model_class.objects.all()
 
         # 获取当前url的参数
         querydict = self.get_url_params(request)
@@ -63,12 +62,42 @@ class PlusModelAdmin(object):
 
         add_url = "%s?%s" % (base_url, querydict)
 
+        # -----------------分页------------------------------
+        from plus.utils.pager import Pager
+
+        condition = {}
+        # 获取数量
+        all_count = self.model_class.objects.filter(**condition).count()
+        current_page = request.GET.get("page")
+
+        # 解析url地址
+        base_page_url = reverse(
+            "%s:%s_%s_changelist" % (
+                self.site.namespace, self.model_class._meta.app_label, self.model_class._meta.model_name))
+
+        # 解析参数
+
+
+        # _mutable为True，才可以修改
+        # request.GET._mutable = True
+
+        import copy
+        params_dict = copy.deepcopy(request.GET)
+        # _mutable为True，才可以修改
+        params_dict._mutable = True
+
+        pager = Pager(all_counts=all_count, current_page=current_page, base_url=base_page_url,
+                      params_dict=params_dict)
+
+        data = self.model_class.objects.all()[pager.start_index:pager.stop_index]
+
         # 传递的数据
         params = {
             "data_list": data,
             "list_display": self.list_display,
             "modeladmin_obj": self,
-            "add_url": add_url
+            "add_url": add_url,
+            "pager": pager.pager()
         }
         return render(request, "change_list.html", params)
 
