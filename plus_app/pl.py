@@ -28,7 +28,7 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
         # obj.pk代表的是主键，在修改的时候要知道修改的对象
 
         # 返回列名
-        if return_header: return mark_safe("<input type='checkbox'/>")
+        if return_header: return mark_safe("操作")
 
         from plus.res import site
         # 通过对象找类
@@ -42,11 +42,11 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
 
         return mark_safe("<a href='%s'>编辑</a>" % res_url)
 
-    def add(self, obj, return_header=False):
+    def select(self, obj, return_header=False):
 
-        if return_header: return "评价"
+        if return_header: return "选项"
 
-        return mark_safe("<input/>")
+        return mark_safe("<input name='pk' value={0} type='checkbox'/>".format(obj.pk))
 
     def delete(self, obj, return_header=False):
 
@@ -63,7 +63,30 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
 
         return mark_safe("<a href='%s'>删除</a>" % res_url)
 
-    list_display = [add, "id", "name", "email", edit, delete]
+    list_display = [select, "id", "name", "email", edit, delete]
+
+    def action_delete(self, request):
+        pass
+
+    def action_update(self, request):
+        pk_list = request.POST.getlist("pk")
+        print("pk_list:", pk_list)
+        self.model_class.objects.filter(pk__in=pk_list).update(name='yangzai')
+
+    # action_delete也是一个对象，可以自定义属性
+    action_delete.title = "批量删除"
+    action_update.title = "批量更新"
+
+    action_list = [action_delete, action_update]
+
+    # -------组合搜索-----------
+
+    from plus.utils.filters import FilterOption
+    filter_list = [
+        FilterOption("name"),
+        FilterOption("ug", True),
+        FilterOption("m2m"),
+    ]
 
 
 class UserGroupPlusModelAdmin(PlusModelAdmin):

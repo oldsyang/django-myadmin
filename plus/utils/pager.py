@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 class Pager():
-    def __init__(self, current_page, all_counts, params_dict, base_url, per_page=1, show_page=11):
+    def __init__(self, current_page, all_counts, params_dict, base_url, per_page=5, show_page=11):
         '''
         生成分页按钮，返回起始索引和结束索引
         :param current_page: 当前页，即将要跳转的页码
@@ -8,7 +8,7 @@ class Pager():
         :param per_page: 一页显示多少数据
         :param show_page: 显示多少页
         :param base_url: 跳转的URL地址
-        :param params_str: url里带的参数
+        :param params_dict: url里带的参数；params_dict是一个QueryDict对象
         '''
         try:
             self.current_page = int(current_page)

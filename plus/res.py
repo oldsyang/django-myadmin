@@ -2,9 +2,14 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.forms import ModelForm
 
+from plus.utils.filters import FilterList
+
 
 class PlusModelAdmin(object):
     list_display = "__all__"
+    action_list = []
+
+    filter_list = []
 
     model_form = None
 
@@ -75,9 +80,6 @@ class PlusModelAdmin(object):
             "%s:%s_%s_changelist" % (
                 self.site.namespace, self.model_class._meta.app_label, self.model_class._meta.model_name))
 
-        # 解析参数
-
-
         # _mutable为True，才可以修改
         # request.GET._mutable = True
 
@@ -91,13 +93,47 @@ class PlusModelAdmin(object):
 
         data = self.model_class.objects.all()[pager.start_index:pager.stop_index]
 
+        action = []
+        for func in self.action_list:
+            action.append({"name": func.__name__, "title": func.title})
+
+        if request.method == "POST":
+            action_event = request.POST.get("action-event")
+            pk_list = request.POST.getlist("pk")
+
+            # 执行函数
+            action = getattr(self, action_event)(request)
+            return redirect("{0}?{1}".format(base_page_url, request.GET.urlencode()))
+
+        # --------------组合搜索-----------------
+        from django.db.models import ForeignKey, ManyToManyField
+
+        filter_list = []
+        for option in self.filter_list:
+            if option.is_func:  # 接收函数的返回值
+                obj_list = option.field_or_func(self, request)
+            else:
+                # 获取字段（django.db.models下的字段类型）
+                field = self.model_class._meta.get_field(option.field_or_func)
+                if isinstance(field, ForeignKey):  # 如果是外键字段
+                    # rel.model ：当前字段相关联的表
+                    obj_list = FilterList(option, field.rel.model.objects.all(), request)
+                elif isinstance(field, ManyToManyField):
+                    obj_list = FilterList(option, field.rel.model.objects.all(), request)
+                else:  # 当前model内的正常字段
+                    obj_list = FilterList(option, field.model.objects.all(), request)
+
+            filter_list.append(obj_list)
+
         # 传递的数据
         params = {
             "data_list": data,
             "list_display": self.list_display,
             "modeladmin_obj": self,
             "add_url": add_url,
-            "pager": pager.pager()
+            "pager": pager,
+            "action_list": action,
+            "filter_list": filter_list
         }
         return render(request, "change_list.html", params)
 
