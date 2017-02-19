@@ -86,6 +86,7 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
         FilterOption("name"),
         FilterOption("ug", True),
         FilterOption("m2m"),
+        FilterOption("email",text_func_name="show_email"),
     ]
 
 

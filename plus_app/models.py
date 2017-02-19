@@ -32,3 +32,6 @@ class UserInfo(models.Model):
 
     def __str__(self):
         return self.name
+
+    def show_email(self):
+        return self.email
