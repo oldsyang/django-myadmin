@@ -42,28 +42,29 @@
 <div class="container">
 
     <div class="row">
-        <h3>列表</h3>
+        <h3>数据列表</h3>
 
     </div>
 
     <div class="row search-group">
-        {% if chl.filter_list %}
-            <div class="comb-search">
-                {% for row in chl.option_filter_list %}
-                    <div class="row">
-                        {% for col in row %}
-                            {% if forloop.first %}
-                                {{ col }}
-                            {% else %}
-                                {{ col }}
-                            {% endif %}
+        <div class="col-sm-12">
+            {% if chl.filter_list %}
+                <div class="comb-search">
+                    {% for row in chl.option_filter_list %}
+                        <div class="row">
+                            {% for col in row %}
+                                {% if forloop.first %}
+                                    {{ col }}
+                                {% else %}
+                                    {{ col }}
+                                {% endif %}
 
-                        {% endfor %}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </div>
     <form method="post">
         {% csrf_token %}

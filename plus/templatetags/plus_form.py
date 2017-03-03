@@ -12,7 +12,7 @@ def get_form_data(form):
     # form_list = []
     for item in form:
         # is_popup：是否增加添加按钮；popup_url：填出的url地址；data：原数据
-        c_item = {"is_popup": False, "data": item, "popup_url": None}
+        c_item = {"is_popup": False, "item": item, "popup_url": None}
         if isinstance(item.field, ModelChoiceField) and item.field.queryset.model in site._registry:
 
             c_item["is_popup"] = True

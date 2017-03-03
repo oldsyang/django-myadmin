@@ -71,7 +71,7 @@ class ChangeList():
         _change = QueryDict(mutable=True)
         _change['_params'] = self.request.GET.urlencode()
 
-        tpl = "<a class='btn btn-success' style='pull-right' href='{0}?{1}'><span class='glyphicon glyphicon-share-alt' aria-hidden='true'></span> 新建数据</a>".format(
+        tpl = "<a class='btn btn-success pull-right'  href='{0}?{1}'><span class='glyphicon glyphicon-share-alt' aria-hidden='true'></span> 新建数据</a>".format(
             add_url,
             _change.urlencode())
         return mark_safe(tpl)
@@ -134,9 +134,10 @@ class PlusModelAdmin(object):
         获取数据列表页的url（带参数）
         :return: 
         '''
-        return reverse(
-            "%s:%s_%s_changelist?%s" % (
-                self.site.namespace, self.app_label, self.model_name, self.request.GET.urlencode()))
+        base_url = reverse(
+            "%s:%s_%s_changelist" % (
+                self.site.namespace, self.app_label, self.model_name))
+        return "%s?%s" % (base_url, self.request.GET.urlencode())
 
     @property
     def changelist_url(self):
@@ -177,19 +178,21 @@ class PlusModelAdmin(object):
 
         if request.method == "POST":
             action_event = request.POST.get("action")
-            if not action_event:
-                return redirect(self.changelist_param_url(request.GET))
-            # 执行函数
-            if getattr(self, action_event)(request):  # 跳转原地址
-                return redirect(self.changelist_param_url(request.GET))
-            else:  # 跳转到数据列表首页
-                return redirect(self.changelist_url)
+
+            if hasattr(self,action_event):
+                # 执行函数
+                self_action = getattr(self, action_event)
+                if self_action(request):  # 跳转原地址
+                    return redirect(self.changelist_param_url)
+                else:  # 跳转到数据列表首页
+                    return redirect(self.changelist_url)
+            else:
+                return redirect(self.changelist_param_url)
 
         change_list = ChangeList(self, result_list)
 
         context = {
             'chl': change_list,
-
         }
 
         # 传递的数据

@@ -1,44 +1,24 @@
 {% load plus_form %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="{% static 'pl/bootstrap-3.3.7-dist/css/bootstrap.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'pl/bootstrap-3.3.7-dist/css/myform-control.css' %}"/>
 </head>
 <body>
-<div>
-{#    <div style="float:left;width: 30%;">#}
-{#        <h1>自动生成的</h1>#}
-{##}
-{#        <form method="post" novalidate>#}
-{#            {% csrf_token %}#}
-{#            {{ form.as_p }}#}
-{#            <input type="submit"/>#}
-{#        </form>#}
-{#    </div>#}
-    <div style="float:left;">
-        <h1>手动生成1</h1>
+<div class="container">
+    <h1>添加/编辑数据</h1>
+    {% create_form form modeladmin_obj %}
 
-        {% create_form form modeladmin_obj %}
-
-    </div>
-{#    <div style="float: left">#}
-    {#        <h1>手动生成2</h1>#}
-    {#        <form novalidate method="post">#}
-    {#            {% csrf_token %}#}
-    {#            <ul>#}
-    {#                {% for item in form %}#}
-    {#                    <li>#}
-    {#                        {{ item.field.label }}{{ item }}{{ item.errors.0 }}#}
-    {#                    </li>#}
-    {#                {% endfor %}#}
-    {#                <li>#}
-    {#                    <input type="submit"/>#}
-    {#                </li>#}
-    {#            </ul>#}
-    {#        </form>#}
-    {#    </div>#}
 </div>
-
 </body>
+<script src="{% static 'pl/jquery-3.2.1.min.js' %}"></script>
+<script>
+
+    $('input[type!=submit]').addClass("form-control")
+    $('select').addClass("form-control")
+</script>
 </html>

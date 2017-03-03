@@ -26,7 +26,7 @@ def yield_body(changelist):
                    changelist.list_display]
 
 
-@register.inclusion_tag("plus/data_table.html")
+@register.inclusion_tag("plus/change_list_data.html")
 def show_list_data(changelist):
     '''
     展示表格数据

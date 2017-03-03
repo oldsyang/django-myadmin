@@ -26,7 +26,7 @@ def yield_body(data_list, list_diaplay, modeladmin_obj):
                    list_diaplay]
 
 
-@register.inclusion_tag("plus/data_table.html")
+@register.inclusion_tag("plus/change_list_data.html")
 def func_data(data_list, list_diaplay, modeladmin_obj):
     body = yield_body(data_list, list_diaplay, modeladmin_obj)
     header = yield_header(data_list, list_diaplay, modeladmin_obj)
