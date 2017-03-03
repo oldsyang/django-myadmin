@@ -1,4 +1,4 @@
-{% load tab %}
+{% load plus_list %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -47,34 +47,37 @@
     </div>
 
     <div class="row search-group">
-        {% for filter in filter_list %}
+        {% if chl.filter_list %}
+            <div class="comb-search">
+                {% for row in chl.option_filter_list %}
+                    <div class="row">
+                        {% for col in row %}
+                            {% if forloop.first %}
+                                {{ col }}
+                            {% else %}
+                                {{ col }}
+                            {% endif %}
 
-            {% for foo in filter %}
-                {{ foo }}
-            {% endfor %}
-        {% endfor %}
-
-    </div>
-    <a class="pull-right" href="{{ add_url }}">添加数据</a>
-    <form method="post">
-        {% csrf_token %}
-        {% if action_list %}
-            <div class="row">
-
-                <select name="action-event" class="form-control" style="display:inline-block;width: 200px">
-                    {% for item in action_list %}
-                        <option value="{{ item.name }}">{{ item.title }}</option>
-
-                    {% endfor %}
-                </select>
-
-                <input type="submit" class="form-control" style="display:inline-block;width: 80px"/>
-
+                        {% endfor %}
+                    </div>
+                {% endfor %}
             </div>
         {% endif %}
 
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row" style="padding: 5px 0">
+            <!-- 定制Action -->
+            {% if chl.action_list %}
+                {% show_action chl.action_list %}
+            {% endif %}
+            <!-- 添加按钮 -->
+            {{ chl.add_btn|safe }}
+        </div>
+
         <div class="row">
-            {% func_data data_list list_display modeladmin_obj %}
+            {% show_list_data chl %}
         </div>
     </form>
 
@@ -84,7 +87,7 @@
 
         <nav aria-label="Page navigation">
             <ul class="pagination">
-                {{ pager.pager|safe }}
+                {{ ch1.pager.pager|safe }}
             </ul>
         </nav>
     </div>

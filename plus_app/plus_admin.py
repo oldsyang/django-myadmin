@@ -1,8 +1,8 @@
 print("################ceshi#########################")
 
-from plus.res import site
+from plus.options import site
 from plus_app import models
-from plus.res import PlusModelAdmin
+from plus.options import PlusModelAdmin
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.forms import ModelForm
@@ -30,7 +30,7 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
         # 返回列名
         if return_header: return mark_safe("操作")
 
-        from plus.res import site
+        from plus.options import site
         # 通过对象找类
         # model_name = type(obj)._meta.model_name
 
@@ -53,7 +53,7 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
         # 返回列名
         if return_header: return "删除"
 
-        from plus.res import site
+        from plus.options import site
 
         # 反向解析的名字
         name = "%s:%s_%s_delete" % (site.namespace, self.app_label, self.model_name)
@@ -66,7 +66,8 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
     list_display = [select, "id", "name", "email", edit, delete]
 
     def action_delete(self, request):
-        pass
+        pk_list = request.POST.getlist("pk")
+        self.model_class.objects.filter(pk__in=pk_list).delete()
 
     def action_update(self, request):
         pk_list = request.POST.getlist("pk")
@@ -82,11 +83,19 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
     # -------组合搜索-----------
 
     from plus.utils.filters import FilterOption
+
+    # 自定义显示的内容
+    def ug(self, option, request):
+        from plus.utils.filters import FilterList
+        queryset = models.UserGroup.objects.filter(id__gt=5)
+
+        return FilterList(option, queryset, request)
+
     filter_list = [
-        FilterOption("name"),
-        FilterOption("ug", True),
+        FilterOption("name", text_func_name="show_name", val_func_name="value_name"),
+        FilterOption(ug, True),
         FilterOption("m2m"),
-        FilterOption("email",text_func_name="show_email"),
+        FilterOption("email", text_func_name="show_email", val_func_name="value_email"),
     ]
 
 

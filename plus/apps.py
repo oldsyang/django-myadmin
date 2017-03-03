@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 
 
-
 class PlusConfig(AppConfig):
     name = 'plus'
 
@@ -10,4 +9,4 @@ class PlusConfig(AppConfig):
 
         from django.utils.module_loading import autodiscover_modules
 
-        autodiscover_modules("pl")
+        autodiscover_modules("plus_admin")

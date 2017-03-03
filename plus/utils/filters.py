@@ -11,7 +11,7 @@ class FilterOption(object):
         :param field: 字段名称或函数
         :param is_multi: 是否支持多选
         :param text_func_name: 在Model中定义函数，显示文本名称，默认使用 str(对象)
-        :param val_func_name:  在Model中定义函数，显示文本名称，默认使用 对象.pk
+        :param val_func_name:  在Model中定义函数，匹配的字段，默认使用 对象.pk
         """
         self.field_or_func = field_or_func
         self.is_multi = is_multi
@@ -38,6 +38,12 @@ from django.utils.safestring import mark_safe
 
 class FilterList():
     def __init__(self, option, querydict, request):
+        '''
+        
+        :param option: 封装了过滤的详细信息的FilterOption对象
+        :param querydict: QueryDict数据
+        :param request: 请求信息
+        '''
         self.option = option
         self.querydict = querydict
         self.params_dict = copy.deepcopy(request.GET)
@@ -78,7 +84,6 @@ class FilterList():
             active = False
             # 先取出当前字段的所有参数值
             value_list = params_dict.getlist(self.option.name)
-            print("value_list:", value_list)
             if self.option.is_multi:
                 # 如果当前值在里边，则说明是取消操作
                 if val in value_list:
@@ -93,9 +98,14 @@ class FilterList():
 
             else:
                 if val in value_list:
+                    # 先剔除掉数据
+                    value_list.remove(val)
                     active = True
-                # 对于只能单选的项，只需要将字段名设置到参数字典里就可以
-                params_dict[self.option.name] = val
+                    # 再设置值
+                    params_dict.setlist(self.option.name, value_list)
+                else:
+                    # 对于只能单选的项，只需要将字段名设置到参数字典里就可以
+                    params_dict[self.option.name] = val
 
             url = "{0}?{1}".format(self.path_info, params_dict.urlencode())
             if active:

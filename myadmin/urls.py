@@ -17,11 +17,15 @@ from django.conf.urls import url
 from django.contrib import admin
 
 from plus_app import views
-from plus.res import site
+from plus.options import site
+from plus import options
+from plus import site
+
+import plus
 
 urlpatterns = [
     # url(r'^admin/', admin.site.urls),
     url(r'^test/', views.test),
     url(r'^test2/', views.test2),
-    url(r'^ceshi/', site.urls),
+    url(r'^ceshi/', plus.site.urls),
 ]

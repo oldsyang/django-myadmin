@@ -3,6 +3,78 @@ from django.urls import reverse
 from django.forms import ModelForm
 
 from plus.utils.filters import FilterList
+from plus.utils.pager import Pager
+from django.db.models import ForeignKey, ManyToManyField
+from django.http.request import QueryDict
+from django.utils.safestring import mark_safe
+
+import copy
+
+
+class ChangeList():
+    def __init__(self, pma, result_list):
+        '''
+        PlusModelAdmin对象
+        :param pma: 
+        '''
+        self.pma = pma
+        self.site = pma.site
+        self.request = pma.request
+
+        self.list_display = pma.list_display
+        self.filter_list = pma.filter_list
+
+        self.model_class = pma.model_class
+        self.changelist_url = pma.changelist_url
+        self.action_list = pma.action_list
+
+        all_count = result_list.count()
+        query_params = copy.deepcopy(self.request.GET)
+        query_params._mutable = True
+
+        self.pager = Pager(all_counts=all_count, current_page=self.request.GET.get("page"),
+                           base_url=self.changelist_url,
+                           params_dict=query_params)
+        self.result_list = result_list[self.pager.start_index:self.pager.stop_index]
+
+    def option_filter_list(self):
+        '''
+        组合搜索
+        :return: 
+        '''
+        for option in self.filter_list:
+            if option.is_func:  # 接收函数的返回值
+                obj_list = option.field_or_func(self, option, self.request)
+            else:
+                # 获取字段（django.db.models下的字段类型）
+                field = self.model_class._meta.get_field(option.field_or_func)
+                if isinstance(field, ForeignKey):  # 如果是外键字段
+                    # rel.model ：当前字段相关联的表
+                    obj_list = FilterList(option, field.rel.model.objects.all(), self.request)
+                elif isinstance(field, ManyToManyField):
+                    obj_list = FilterList(option, field.rel.model.objects.all(), self.request)
+                else:  # 当前model内的正常字段
+                    obj_list = FilterList(option, field.model.objects.all(), self.request)
+
+            yield obj_list
+
+    def add_btn(self):
+        """
+        列表页面定制新建数据按钮
+        :return: 
+        """
+        pass
+        add_url = reverse(
+            '%s:%s_%s_add' % (
+                self.site.namespace, self.model_class._meta.app_label, self.model_class._meta.model_name))
+
+        _change = QueryDict(mutable=True)
+        _change['_params'] = self.request.GET.urlencode()
+
+        tpl = "<a class='btn btn-success' style='pull-right' href='{0}?{1}'><span class='glyphicon glyphicon-share-alt' aria-hidden='true'></span> 新建数据</a>".format(
+            add_url,
+            _change.urlencode())
+        return mark_safe(tpl)
 
 
 class PlusModelAdmin(object):
@@ -56,86 +128,81 @@ class PlusModelAdmin(object):
 
         return querydict.urlencode()
 
+    @property
+    def changelist_param_url(self):
+        '''
+        获取数据列表页的url（带参数）
+        :return: 
+        '''
+        return reverse(
+            "%s:%s_%s_changelist?%s" % (
+                self.site.namespace, self.app_label, self.model_name, self.request.GET.urlencode()))
+
+    @property
+    def changelist_url(self):
+        '''
+        获取数据列表页的url
+        :return: 
+        '''
+        return reverse(
+            "%s:%s_%s_changelist" % (
+                self.site.namespace, self.app_label, self.model_name))
+
+    def get_change_list_condition(self, query_params):
+        '''
+        过滤合法的查询字段
+        :param query_params: 
+        :return: 
+        '''
+
+        field_list = [item.name for item in self.model_class._meta._get_fields()]
+        condition = {}
+        for k in query_params:
+            if k not in field_list:
+                # raise Exception('条件查询字段%s不合法，合法字段为：%s' % (k, ",".join(field_list)))
+                continue
+            condition[k + "__in"] = query_params.getlist(k)
+        return condition
+
     def changelist_view(self, request):
+        '''
+        显示数据列表
+        :param request: 
+        :return: 
+        '''
 
         self.request = request
-
-        # 获取当前url的参数
-        querydict = self.get_url_params(request)
-        base_url = reverse(
-            "%s:%s_%s_add" % (self.site.namespace, self.model_class._meta.app_label, self.model_class._meta.model_name))
-
-        add_url = "%s?%s" % (base_url, querydict)
-
-        # -----------------分页------------------------------
-        from plus.utils.pager import Pager
-
-        condition = {}
-        # 获取数量
-        all_count = self.model_class.objects.filter(**condition).count()
-        current_page = request.GET.get("page")
-
-        # 解析url地址
-        base_page_url = reverse(
-            "%s:%s_%s_changelist" % (
-                self.site.namespace, self.model_class._meta.app_label, self.model_class._meta.model_name))
-
-        # _mutable为True，才可以修改
-        # request.GET._mutable = True
-
-        import copy
-        params_dict = copy.deepcopy(request.GET)
-        # _mutable为True，才可以修改
-        params_dict._mutable = True
-
-        pager = Pager(all_counts=all_count, current_page=current_page, base_url=base_page_url,
-                      params_dict=params_dict)
-
-        data = self.model_class.objects.all()[pager.start_index:pager.stop_index]
-
-        action = []
-        for func in self.action_list:
-            action.append({"name": func.__name__, "title": func.title})
+        result_list = self.model_class.objects.filter(**self.get_change_list_condition(request.GET))
+        print("sql:", result_list.query)
 
         if request.method == "POST":
-            action_event = request.POST.get("action-event")
-            pk_list = request.POST.getlist("pk")
-
+            action_event = request.POST.get("action")
+            if not action_event:
+                return redirect(self.changelist_param_url(request.GET))
             # 执行函数
-            action = getattr(self, action_event)(request)
-            return redirect("{0}?{1}".format(base_page_url, request.GET.urlencode()))
+            if getattr(self, action_event)(request):  # 跳转原地址
+                return redirect(self.changelist_param_url(request.GET))
+            else:  # 跳转到数据列表首页
+                return redirect(self.changelist_url)
 
-        # --------------组合搜索-----------------
-        from django.db.models import ForeignKey, ManyToManyField
+        change_list = ChangeList(self, result_list)
 
-        filter_list = []
-        for option in self.filter_list:
-            if option.is_func:  # 接收函数的返回值
-                obj_list = option.field_or_func(self, request)
-            else:
-                # 获取字段（django.db.models下的字段类型）
-                field = self.model_class._meta.get_field(option.field_or_func)
-                if isinstance(field, ForeignKey):  # 如果是外键字段
-                    # rel.model ：当前字段相关联的表
-                    obj_list = FilterList(option, field.rel.model.objects.all(), request)
-                elif isinstance(field, ManyToManyField):
-                    obj_list = FilterList(option, field.rel.model.objects.all(), request)
-                else:  # 当前model内的正常字段
-                    obj_list = FilterList(option, field.model.objects.all(), request)
+        context = {
+            'chl': change_list,
 
-            filter_list.append(obj_list)
+        }
 
         # 传递的数据
-        params = {
-            "data_list": data,
-            "list_display": self.list_display,
-            "modeladmin_obj": self,
-            "add_url": add_url,
-            "pager": pager,
-            "action_list": action,
-            "filter_list": filter_list
-        }
-        return render(request, "change_list.html", params)
+        # params = {
+        #     "data_list": data,
+        #     "list_display": self.list_display,
+        #     "modeladmin_obj": self,
+        #     "add_url": add_url,
+        #     "pager": pager,
+        #     "action_list": action,
+        #     "filter_list": filter_list
+        # }
+        return render(request, "plus/change_list.html", context)
 
     def get_model_form(self):
         '''
@@ -157,7 +224,7 @@ class PlusModelAdmin(object):
         if request.method == "GET":
             model_form = self.get_model_form()()
             from  django.forms.boundfield import BoundField
-            return render(request, "add.html", {"form": model_form, "modeladmin_obj": self})
+            return render(request, "plus/add.html", {"form": model_form, "modeladmin_obj": self})
         else:
             obj = self.get_model_form()(data=request.POST, files=request.FILES)
             _params = request.GET.get("_params")
@@ -170,14 +237,14 @@ class PlusModelAdmin(object):
                 popup_id = request.GET.get("_popup_id")
                 # 这个的话是表示这个一个新弹出的popup窗口的提交请求
                 if popup_id:
-                    return render(request, "form_add_popup.html",
+                    return render(request, "plus/form_add_popup.html",
                                   {"pk": popup_obj.pk, "text": str(popup_obj), "popup_id": popup_id})
                 else:
                     # 正常的请求，跳回页面
                     return redirect(changelist_url)
             else:
 
-                return render(request, "add.html", {"form": obj, "modeladmin_obj": self})
+                return render(request, "plus/add.html", {"form": obj, "modeladmin_obj": self})
 
     def delete_view(self, request, pk):
         obj = self.model_class.objects.filter(pk=pk).delete()
@@ -199,7 +266,7 @@ class PlusModelAdmin(object):
 
         if request.method == "GET":
             model_form = self.get_model_form()(instance=obj)
-            return render(request, "add.html", {"form": model_form, "modeladmin_obj": self})
+            return render(request, "plus/add.html", {"form": model_form, "modeladmin_obj": self})
         else:
             # 这里要加instance，才能去处理如果库里有就更新
             obj = self.get_model_form()(data=request.POST, files=request.FILES, instance=obj)
@@ -211,13 +278,13 @@ class PlusModelAdmin(object):
                 changelist_url = "%s?%s" % (changelist_url, _params)
                 return redirect(changelist_url)
             else:
-                return render(request, "add.html", {"form": obj, "modeladmin_obj": self})
+                return render(request, "plus/add.html", {"form": obj, "modeladmin_obj": self})
 
 
 from django.shortcuts import HttpResponse
 
 
-class PlSite(object):
+class PlusSite(object):
     def __init__(self):
         self._registry = {}
         self.namespace = "plus"
@@ -249,4 +316,4 @@ class PlSite(object):
 
 
 # 始终只有一个site对象
-site = PlSite()
+site = PlusSite()

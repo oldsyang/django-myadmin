@@ -26,7 +26,7 @@ def yield_body(data_list, list_diaplay, modeladmin_obj):
                    list_diaplay]
 
 
-@register.inclusion_tag("tab.html")
+@register.inclusion_tag("plus/data_table.html")
 def func_data(data_list, list_diaplay, modeladmin_obj):
     body = yield_body(data_list, list_diaplay, modeladmin_obj)
     header = yield_header(data_list, list_diaplay, modeladmin_obj)
@@ -37,6 +37,10 @@ def func_data(data_list, list_diaplay, modeladmin_obj):
     return {"body": body, "header": header}
 
 
+
+@register.inclusion_tag('plus/change_list_action.html')
+def show_action(change_list):
+    return {'actions': ((item.__name__, item.title) for item in change_list.actions)}
 # -###########################生成数据列表结束#-###########################
 
 
@@ -68,7 +72,7 @@ def func_data(data_list, list_diaplay, modeladmin_obj):
 
 from django.forms import ModelChoiceField
 from django.forms import ModelMultipleChoiceField
-from plus.res import site
+from plus.options import site
 from django.urls import reverse
 from django.forms import fields
 
@@ -97,7 +101,7 @@ def get_form_data(form):
         yield c_item
 
 
-@register.inclusion_tag("create_form.html")
+@register.inclusion_tag("plus/create_form.html")
 def create_form(form, modeladmin_obj):
     s = get_form_data(form)
     return {"form": s}

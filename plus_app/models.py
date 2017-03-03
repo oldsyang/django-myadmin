@@ -33,5 +33,19 @@ class UserInfo(models.Model):
     def __str__(self):
         return self.name
 
+    # 不显示__str__，而是显示email的内容
     def show_email(self):
         return self.email
+
+    # 不匹配pk主键，而是匹配email的显示内容
+    def value_email(self):
+        return self.email
+
+    # 不显示__str__，而是显示name的内容
+    def show_name(self):
+        return self.name
+
+    # 不显示__str__，而是匹配email的显示内容
+    def value_name(self):
+        # name匹配的就是name
+        return self.name
