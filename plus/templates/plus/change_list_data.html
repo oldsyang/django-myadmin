@@ -11,7 +11,13 @@
     {% for datum in body %}
         <tr>
             {% for foo in datum %}
-                <td>{{ foo }}</td>
+                {% if changelist.is_edit %}
+                    {% if not forloop.first %}
+                        <td><a href='{{ datum.0 }}'>{{ foo }}</a></td>
+                    {% endif %}
+                {% else %}
+                    <td>{{ foo }}</td>
+                {% endif %}
             {% endfor %}
         </tr>
     {% endfor %}

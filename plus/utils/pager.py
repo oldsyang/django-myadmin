@@ -34,7 +34,7 @@ class Pager():
     def stop_index(self):
         return self.current_page * self.per_page
 
-    def pager(self):
+    def pager_to_html(self):
         # 确定选中页的位置
         half = int((self.show_page - 1) / 2)
 

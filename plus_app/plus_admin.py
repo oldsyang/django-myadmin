@@ -22,6 +22,7 @@ class UserInfoModelForm(ModelForm):
 
 class UserinfoPlusModelAdmin(PlusModelAdmin):
     model_form = UserInfoModelForm
+    is_edit = True
 
     # obj代表的是行数据的对象
     def edit(self, obj, return_header=False):

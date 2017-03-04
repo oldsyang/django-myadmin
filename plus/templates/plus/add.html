@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>添加/编辑数据</h1>
+    <h3>添加/编辑数据</h3>
     {% create_form form modeladmin_obj %}
 
 </div>
@@ -18,7 +18,7 @@
 <script src="{% static 'pl/jquery-3.2.1.min.js' %}"></script>
 <script>
 
-    $('input[type!=submit]').addClass("form-control")
+    $('input[type!=submit]').addClass("form-control");
     $('select').addClass("form-control")
 </script>
 </html>

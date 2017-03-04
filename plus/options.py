@@ -21,6 +21,7 @@ class ChangeList():
         self.site = pma.site
         self.request = pma.request
 
+        self.is_edit = pma.is_edit
         self.list_display = pma.list_display
         self.filter_list = pma.filter_list
 
@@ -35,6 +36,7 @@ class ChangeList():
         self.pager = Pager(all_counts=all_count, current_page=self.request.GET.get("page"),
                            base_url=self.changelist_url,
                            params_dict=query_params)
+        print("self.pager", self.pager.pager_to_html())
         self.result_list = result_list[self.pager.start_index:self.pager.stop_index]
 
     def option_filter_list(self):
@@ -78,11 +80,18 @@ class ChangeList():
 
 
 class PlusModelAdmin(object):
-    list_display = "__all__"
+    # 行是否可点击
+    is_edit = False
+
+    list_display = "__str__"
+
+    # 自定义的批量处理事件
     action_list = []
 
+    # 过滤的组合条件
     filter_list = []
 
+    # 添加或修改数据时的ModelForm对象（可以定义操作的字段，出错时的提示）
     model_form = None
 
     def __init__(self, model_class, site):
@@ -151,7 +160,7 @@ class PlusModelAdmin(object):
 
     def get_change_list_condition(self, query_params):
         '''
-        过滤合法的查询字段
+        过滤不合法的查询字段
         :param query_params: 
         :return: 
         '''
@@ -164,48 +173,6 @@ class PlusModelAdmin(object):
                 continue
             condition[k + "__in"] = query_params.getlist(k)
         return condition
-
-    def changelist_view(self, request):
-        '''
-        显示数据列表
-        :param request: 
-        :return: 
-        '''
-
-        self.request = request
-        result_list = self.model_class.objects.filter(**self.get_change_list_condition(request.GET))
-        print("sql:", result_list.query)
-
-        if request.method == "POST":
-            action_event = request.POST.get("action")
-
-            if hasattr(self,action_event):
-                # 执行函数
-                self_action = getattr(self, action_event)
-                if self_action(request):  # 跳转原地址
-                    return redirect(self.changelist_param_url)
-                else:  # 跳转到数据列表首页
-                    return redirect(self.changelist_url)
-            else:
-                return redirect(self.changelist_param_url)
-
-        change_list = ChangeList(self, result_list)
-
-        context = {
-            'chl': change_list,
-        }
-
-        # 传递的数据
-        # params = {
-        #     "data_list": data,
-        #     "list_display": self.list_display,
-        #     "modeladmin_obj": self,
-        #     "add_url": add_url,
-        #     "pager": pager,
-        #     "action_list": action,
-        #     "filter_list": filter_list
-        # }
-        return render(request, "plus/change_list.html", context)
 
     def get_model_form(self):
         '''
@@ -222,7 +189,42 @@ class PlusModelAdmin(object):
 
         return MyModelForm
 
+    def changelist_view(self, request):
+        '''
+        显示数据列表
+        :param request: 
+        :return: 
+        '''
+
+        self.request = request
+        result_list = self.model_class.objects.filter(**self.get_change_list_condition(request.GET))
+
+        if request.method == "POST":
+            action_event = request.POST.get("action")
+
+            if hasattr(self, action_event):
+                # 执行函数
+                self_action = getattr(self, action_event)
+                if self_action(request):  # 跳转原地址
+                    return redirect(self.changelist_param_url)
+                else:  # 跳转到数据列表首页
+                    return redirect(self.changelist_url)
+            else:
+                return redirect(self.changelist_param_url)
+
+        change_list = ChangeList(self, result_list)
+
+        context = {
+            'chl': change_list,
+        }
+        return render(request, "plus/change_list.html", context)
+
     def add_view(self, request):
+        '''
+        增加数据项
+        :param request: 
+        :return: 
+        '''
         self.request = request
         if request.method == "GET":
             model_form = self.get_model_form()()
@@ -250,6 +252,12 @@ class PlusModelAdmin(object):
                 return render(request, "plus/add.html", {"form": obj, "modeladmin_obj": self})
 
     def delete_view(self, request, pk):
+        '''
+        删除数据项
+        :param request: 
+        :param pk: 删除的主键
+        :return: 
+        '''
         obj = self.model_class.objects.filter(pk=pk).delete()
         if not obj:
             return HttpResponse("出错了")
@@ -263,6 +271,12 @@ class PlusModelAdmin(object):
         return redirect(changelist_url)
 
     def change_view(self, request, pk):
+        '''
+        修改数据项
+        :param request: 
+        :param pk: 删除的主键
+        :return: 
+        '''
         obj = self.model_class.objects.filter(pk=pk).first()
         if not obj:
             return HttpResponse("出错了")

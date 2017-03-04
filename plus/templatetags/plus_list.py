@@ -6,7 +6,7 @@ register = template.Library()
 
 # -###########################生成数据列表-###########################
 def yield_header(changelist):
-    if changelist.list_display == "__all__":  # 如果没有扩展，则列名显示为空
+    if changelist.list_display == "__str__":  # 如果没有扩展，则列名显示为空
         yield changelist.pma.model_name
     else:
         for cl in changelist.list_display:
@@ -16,14 +16,30 @@ def yield_header(changelist):
                 yield changelist.pma.model_class._meta.get_field(cl).verbose_name
 
 
+from django.urls import reverse
+
+
+def get_change_url(changelist, pk):
+    name = "%s:%s_%s_change" % (changelist.site.namespace, changelist.pma.app_label, changelist.pma.model_name)
+    res_url = reverse(name, args=(pk,))
+    return "{0}?{1}".format(res_url,
+                            changelist.pma.get_url_params(changelist.request))
+
+
 def yield_body(changelist):
     for d in changelist.result_list:
-        if changelist.list_display == "__all__":  # 如果没有扩展，则触发对象的str方法
-            yield [str(d), ]
+        if changelist.list_display == "__str__":  # 如果没有扩展，则触发对象的str方法
+            tr = [str(d), ]
+            if changelist.is_edit:
+                tr.insert(0, get_change_url(changelist, d.pk))
+            yield tr
         else:
             # 判断类型，如果是函数，取函数的返回值
-            yield [clo(changelist.pma, d) if isinstance(clo, FunctionType) else getattr(d, clo) for clo in
-                   changelist.list_display]
+            tr = [clo(changelist.pma, d) if isinstance(clo, FunctionType) else getattr(d, clo) for clo in
+                  changelist.list_display]
+            if changelist.is_edit:
+                tr.insert(0, get_change_url(changelist, d.pk))
+            yield tr
 
 
 @register.inclusion_tag("plus/change_list_data.html")
@@ -37,10 +53,9 @@ def show_list_data(changelist):
     # 这个地方的return的数据是传给了tab.html
     return {
         'body': yield_body(changelist),
-        'header': yield_header(changelist)
+        'header': yield_header(changelist),
+        'changelist': changelist
     }
-
-
 
 
 @register.inclusion_tag('plus/change_list_action.html')
