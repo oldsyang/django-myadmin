@@ -35,6 +35,10 @@
             padding-left: 70px;
         }
 
+        td, th {
+            text-align: center;
+        }
+
     </style>
 </head>
 <body>
@@ -93,5 +97,30 @@
 
 </div>
 
+<script>
+
+    {#    window.onload = function () {#}
+    {#        var ele = document.getElementById("all-check");#}
+    {#        console.log(ele);#}
+    {#        ele.onclick = function () {#}
+    {#            check_all();#}
+    {#            console.log("1111");#}
+    {#        }#}
+    {##}
+    {#    };#}
+    function check_all() {
+        var childs = document.getElementsByTagName("input");
+        for (var index = 0; index < childs.length; index++) {
+            var element = childs[index];
+            if (element.getAttribute("name") == "pk") {
+                element.checked = !element.checked;
+                //阻止事件冒泡
+                //event.preventDefault();
+
+            }
+        }
+    }
+
+</script>
 </body>
 </html>

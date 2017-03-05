@@ -64,11 +64,8 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
 
         return mark_safe("<a href='%s'>删除</a>" % res_url)
 
-    list_display = [select, "id", "name", "email", edit, delete]
-
-    def action_delete(self, request):
-        pk_list = request.POST.getlist("pk")
-        self.model_class.objects.filter(pk__in=pk_list).delete()
+    # list_display = [select, "id", "name", "email", edit, delete]
+    list_display = ["id", "name", "email", edit, delete]
 
     def action_update(self, request):
         pk_list = request.POST.getlist("pk")
@@ -76,11 +73,9 @@ class UserinfoPlusModelAdmin(PlusModelAdmin):
         self.model_class.objects.filter(pk__in=pk_list).update(name='yangzai')
 
     # action_delete也是一个对象，可以自定义属性
-    action_delete.title = "批量删除"
     action_update.title = "批量更新"
 
-    action_list = [action_delete, action_update]
-
+    # action_list = [action_update]
     # -------组合搜索-----------
 
     from plus.utils.filters import FilterOption

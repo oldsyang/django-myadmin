@@ -22,6 +22,7 @@ class ChangeList():
         self.request = pma.request
 
         self.is_edit = pma.is_edit
+        self.show_checkbox_col = pma.show_checkbox_col
         self.list_display = pma.list_display
         self.filter_list = pma.filter_list
 
@@ -36,7 +37,6 @@ class ChangeList():
         self.pager = Pager(all_counts=all_count, current_page=self.request.GET.get("page"),
                            base_url=self.changelist_url,
                            params_dict=query_params)
-        print("self.pager", self.pager.pager_to_html())
         self.result_list = result_list[self.pager.start_index:self.pager.stop_index]
 
     def option_filter_list(self):
@@ -80,18 +80,32 @@ class ChangeList():
 
 
 class PlusModelAdmin(object):
-    # 行是否可点击
+    # 行是否可点击（行编辑功能）
     is_edit = False
 
+    # 是否有行勾选按钮
+    show_checkbox_col = True
+
+    # 显示哪些字段
     list_display = "__str__"
 
     # 自定义的批量处理事件
     action_list = []
 
+    def action_delete(self, request):
+        pk_list = request.POST.getlist("pk")
+        self.model_class.objects.filter(pk__in=pk_list).delete()
+        return True
+
+    # action_delete也是一个对象，可以自定义属性
+    action_delete.title = "批量删除"
+
+    action_list = [action_delete, ]
+
     # 过滤的组合条件
     filter_list = []
 
-    # 添加或修改数据时的ModelForm对象（可以定义操作的字段，出错时的提示）
+    # 添加或修改数据时的ModelForm对象（可以定义操作的字段，出错时的提示等）
     model_form = None
 
     def __init__(self, model_class, site):

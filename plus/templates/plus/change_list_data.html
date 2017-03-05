@@ -1,7 +1,15 @@
+{% load plus_list %}
 <table class="table table-bordered">
 
     <thead>
     <tr>
+        {% if changelist.show_checkbox_col %}
+            <th style="text-align: left;width: 80px;">
+                <label class="checkbox-inline" id='all-check' >
+                    <input type="checkbox" value="option1" onclick="check_all()"> 全选
+                </label>
+            </th>
+        {% endif %}
         {% for hitem in header %}
             <th>{{ hitem }}</th>
         {% endfor %}
@@ -10,11 +18,12 @@
     <tbody>
     {% for datum in body %}
         <tr>
-            {% for foo in datum %}
+            {% if changelist.show_checkbox_col %}
+                <td style="text-align: left;width: 80px;">{% to_checkbox_col datum %}</td>
+            {% endif %}
+            {% for foo in datum.tds %}
                 {% if changelist.is_edit %}
-                    {% if not forloop.first %}
-                        <td><a href='{{ datum.0 }}'>{{ foo }}</a></td>
-                    {% endif %}
+                    <td>{% to_canedit_row changelist datum foo %}</td>
                 {% else %}
                     <td>{{ foo }}</td>
                 {% endif %}

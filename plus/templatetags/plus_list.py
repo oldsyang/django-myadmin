@@ -26,20 +26,23 @@ def get_change_url(changelist, pk):
                             changelist.pma.get_url_params(changelist.request))
 
 
+class Tr():
+    def __init__(self, pk, tds):
+        self.pk = pk
+        self.tds = tds
+
+    def __str__(self):
+        return str(self.pk)
+
+
 def yield_body(changelist):
     for d in changelist.result_list:
         if changelist.list_display == "__str__":  # 如果没有扩展，则触发对象的str方法
-            tr = [str(d), ]
-            if changelist.is_edit:
-                tr.insert(0, get_change_url(changelist, d.pk))
-            yield tr
+            yield Tr(d.pk, [str(d), ])
         else:
             # 判断类型，如果是函数，取函数的返回值
-            tr = [clo(changelist.pma, d) if isinstance(clo, FunctionType) else getattr(d, clo) for clo in
-                  changelist.list_display]
-            if changelist.is_edit:
-                tr.insert(0, get_change_url(changelist, d.pk))
-            yield tr
+            yield Tr(d.pk, [clo(changelist.pma, d) if isinstance(clo, FunctionType) else getattr(d, clo) for clo in
+                            changelist.list_display])
 
 
 @register.inclusion_tag("plus/change_list_data.html")
@@ -61,3 +64,16 @@ def show_list_data(changelist):
 @register.inclusion_tag('plus/change_list_action.html')
 def show_action(actions):
     return {'actions': ((item.__name__, item.title) for item in actions)}
+
+
+from django.utils.safestring import mark_safe
+
+
+@register.simple_tag
+def to_canedit_row(changelist, pk, name):
+    return mark_safe("<a href='{0}'>{1}</a>".format(get_change_url(changelist, pk), name))
+
+
+@register.simple_tag
+def to_checkbox_col(pk):
+    return mark_safe("<input name='pk' value='{0}' type='checkbox'/>".format(pk))

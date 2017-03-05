@@ -24,7 +24,7 @@ from plus import site
 import plus
 
 urlpatterns = [
-    # url(r'^admin/', admin.site.urls),
+    url(r'^admin/', admin.site.urls),
     url(r'^test/', views.test),
     url(r'^test2/', views.test2),
     url(r'^ceshi/', plus.site.urls),
